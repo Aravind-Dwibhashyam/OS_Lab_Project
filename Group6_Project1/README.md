@@ -42,7 +42,7 @@ git push origin yourBranchName
    * **What it is:** A secure message-passing system between isolated programs.
    * **The Task:** In xv6, processes have completely separate memory spaces and cannot directly talk to each other. This system call sets up a shared buffer inside the kernel, allowing one process to safely copy a message string into the kernel, which another process can later read.
 
-3. **clone (Threads) - [Your Name/Admin]**
+3. **clone (Threads) - Dwibhashyam S S S Aravind / 24je0617**
    * **What it is:** The foundation for multithreading.
    * **The Task:** Unlike fork(), which creates a completely separate duplicate of a process's memory, clone creates a child process that shares the exact same virtual memory space (the same page directory) as its parent, while having its own independent user stack.
 
