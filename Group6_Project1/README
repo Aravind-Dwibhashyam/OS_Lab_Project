@@ -1,48 +1,59 @@
-xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
-Version 6 (v6).  xv6 loosely follows the structure and style of v6,
-but is implemented for a modern RISC-V multiprocessor using ANSI C.
+# OS Lab Project-1: Custom system calls in XV6 riscv architecture
 
-ACKNOWLEDGMENTS
+## Workflow and Pull Requests
+To prevent merge conflicts, everyone should create a branch with their name and do the work in that branch only. We can merge them into the main at the end after you send a PR. 
+I have also added the placeholders for the functions and made individual workspaces in the file where you will write the code. Add your name and admission number wherever you are doing any work.
 
-xv6 is inspired by John Lions's Commentary on UNIX 6th Edition (Peer
-to Peer Communications; ISBN: 1-57398-013-7; 1st edition (June 14,
-2000)).  See also https://pdos.csail.mit.edu/6.1810/, which provides
-pointers to on-line resources for v6.
+### Step-1: Clone and Branch
+```bash
+git clone https://github.com/Aravind-Dwibhashyam/OS_Lab_Project
+cd OS_Lab_Project/Group6_Project1
+git checkout -b [yourName]
+```
 
-The following people have made contributions: Russ Cox (context switching,
-locking), Cliff Frey (MP), Xiao Yu (MP), Nickolai Zeldovich, and Austin
-Clements.
+### Step-2: Where to write your code
+**Kernel Logic:** Open `kernel/sysproc.c` and scroll to the bottom. You will see it.
+**User Program:** Open your specific test file in the `user/` directory. You must add a user program here that demonstrates the logic used.
 
-We are also grateful for the bug reports and patches contributed by
-Abhinavpatel00, Takahiro Aoyagi, Marcelo Arroyo, Hirbod Behnam, Silas
-Boyd-Wickizer, Anton Burtsev, carlclone, Ian Chen, clivezeng, Dan
-Cross, Cody Cutler, Mike CAT, Tej Chajed, Asami Doi,Wenyang Duan,
-echtwerner, eyalz800, Nelson Elhage, Saar Ettinger, Alice Ferrazzi,
-Nathaniel Filardo, flespark, Peter Froehlich, Yakir Goaron, Shivam
-Handa, Matt Harvey, Bryan Henry, jaichenhengjie, Jim Huang, Matúš
-Jókay, John Jolly, Alexander Kapshuk, Anders Kaseorg, kehao95,
-Wolfgang Keller, Jungwoo Kim, Jonathan Kimmitt, Eddie Kohler, Vadim
-Kolontsov, Austin Liew, l0stman, Pavan Maddamsetti, Imbar Marinescu,
-Yandong Mao, Matan Shabtay, Hitoshi Mitake, Carmi Merimovich,
-mes900903, Mark Morrissey, mtasm, Joel Nider, Hayato Ohhashi,
-OptimisticSide, papparapa, phosphagos, Harry Porter, Greg Price, Zheng
-qhuo, Quancheng, RayAndrew, Jude Rich, segfault, Ayan Shafqat, Eldar
-Sehayek, Yongming Shen, Fumiya Shigemitsu, snoire, Taojie, Cam Tenny,
-tyfkda, Warren Toomey, Stephen Tu, Alissa Tung, Rafael Ubal, unicornx,
-Amane Uehara, Pablo Ventura, Luc Videau, Xi Wang, WaheedHafez, Keiichi
-Watanabe, Lucas Wolf, Nicolas Wolovick, wxdao, Grant Wu, x653, Andy
-Zhang, Jindong Zhang, Icenowy Zheng, ZhUyU1997, and Zou Chang Wei.
+### Step-3: Testing and screenshots
+Compile and run the xv6 emulator to test your code:
+```bash
+make qemu
+```
+*(Use Ctrl+A, then X to exit qemu)*
 
-ERROR REPORTS
+Take screenshots of the execution and share it in the whatsapp group.
 
-Please send errors and suggestions to Frans Kaashoek and Robert Morris
-(kaashoek,rtm@mit.edu).  The main purpose of xv6 is as a teaching
-operating system for MIT's 6.1810, so we are more interested in
-simplifications and clarifications than new features.
+### Step-4: Pushing the code and creating a PR
+```bash
+make clean
+git add kernel/sysproc.c user/[your_test].c
+git commit -m "Write your updates"
+git push origin yourBranchName
+```
 
-BUILDING AND RUNNING XV6
+## Work allotted
 
-You will need a RISC-V "newlib" tool chain from
-https://github.com/riscv/riscv-gnu-toolchain, and qemu compiled for
-riscv64-softmmu.  Once they are installed, and in your shell
-search path, you can run "make qemu".
+1. **waitpid (Process Creation) - Unassigned**
+   * **What it is:** A targeted version of the standard wait() call.
+   * **The Task:** Standard xv6 suspends a parent process until any of its children finish. This custom system call allows a parent to wait for a specific child process (by providing its exact PID) to exit before resuming execution. It involves managing the process table and understanding parent/child lifecycles.
+
+2. **sendmsg (Inter-Process Communication (IPC)) - Unassigned**
+   * **What it is:** A secure message-passing system between isolated programs.
+   * **The Task:** In xv6, processes have completely separate memory spaces and cannot directly talk to each other. This system call sets up a shared buffer inside the kernel, allowing one process to safely copy a message string into the kernel, which another process can later read.
+
+3. **clone (Threads) - [Your Name/Admin]**
+   * **What it is:** The foundation for multithreading.
+   * **The Task:** Unlike fork(), which creates a completely separate duplicate of a process's memory, clone creates a child process that shares the exact same virtual memory space (the same page directory) as its parent, while having its own independent user stack.
+
+4. **sem_wait (Locks) - Unassigned**
+   * **What it is:** A counting semaphore to prevent data corruption.
+   * **The Task:** When multiple processes or threads try to access the same shared resource at the same time, data gets corrupted. This system call implements a lock that forces a process to "sleep" if a resource is currently in use, and "wake up" when the resource becomes available.
+
+5. **alarm (Signals) - Unassigned**
+   * **What it is:** A timer-based software interrupt.
+   * **The Task:** This allows a user program to ask the kernel to interrupt it after a specific amount of time. The program calls alarm(ticks, handler_function), and after that number of CPU timer ticks pass, the kernel forces the program to pause and execute the specific handler function before resuming its normal code.
+
+6. **psinfo (System Diagnostics) - Unassigned**
+   * **What it is:** A snapshot of the operating system's current state.
+   * **The Task:** This system call reads the kernel's internal process table and returns a formatted array containing the status of every active process running on the OS (including its PID, name, and whether it is RUNNING, SLEEPING, or a ZOMBIE).
