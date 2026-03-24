@@ -1,0 +1,9 @@
+*.o
+*.d
+*.asm
+*.sym
+*.img
+_catch
+_*
+*~
+*.swp
