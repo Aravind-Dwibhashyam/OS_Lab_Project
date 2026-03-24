@@ -42,3 +42,10 @@ entry("getpid");
 entry("sbrk");
 entry("pause");
 entry("uptime");
+#added the following entries manually
+entry("waitpid");
+entry("sendmsg");
+entry("clone");
+entry("sem_wait");
+entry("alarm");
+entry("psinfo");

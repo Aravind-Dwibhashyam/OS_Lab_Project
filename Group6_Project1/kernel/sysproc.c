@@ -107,3 +107,36 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+//We will add the function definitions below. Creating different zones to make sure we dont have any merge conflicts
+
+//NAME: xxx	Adm.No: xxx
+uint64 sys_waitpid(void) {
+	return 0;
+}
+
+//NAME: xxx	Adm.No: xxx
+uint64 sys_sendmsg(void) {
+	return 0;
+}
+
+//NAME: xxx	Adm.No: xxx
+uint64 sys_clone(void) {
+	return 0;
+}
+
+//NAME: xxx	Adm.No: xxx
+uint64 sys_sem_wait(void) {
+	return 0;
+}
+
+//NAME: xxx	Adm.No: xxx
+uint64 sys_alarm(void) {
+	return 0;
+}
+
+//NAME: xxx	Adm.No: xxx
+uint64 sys_psinfo(void) {
+	return 0;
+}
+

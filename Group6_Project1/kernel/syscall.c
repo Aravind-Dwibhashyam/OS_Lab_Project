@@ -101,6 +101,13 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+//added the below Prototypes manually
+extern uint64 sys_waitpid(void);
+extern uint64 sys_sendmsg(void);
+extern uint64 sys_clone(void);
+extern uint64 sys_sem_wait(void);
+extern uint64 sys_alarm(void);
+extern uint64 sys_psinfo(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -126,6 +133,13 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+//added the below function pointers manually
+[SYS_waitpid]  sys_waitpid,
+[SYS_sendmsg]  sys_sendmsg,
+[SYS_clone]    sys_clone,
+[SYS_sem_wait] sys_sem_wait,
+[SYS_alarm]    sys_alarm,
+[SYS_psinfo]   sys_psinfo,
 };
 
 void

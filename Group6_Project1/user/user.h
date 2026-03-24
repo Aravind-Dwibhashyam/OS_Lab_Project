@@ -24,6 +24,13 @@ int getpid(void);
 char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
+//added the prototypes for the following system calls manually
+int waitpid(void);
+int sendmsg(void);
+int clone(void);
+int sem_wait(void);
+int alarm(void);
+int psinfo(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
