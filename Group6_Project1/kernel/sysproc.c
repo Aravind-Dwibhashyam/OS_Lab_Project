@@ -120,9 +120,17 @@ uint64 sys_sendmsg(void) {
 	return 0;
 }
 
-//NAME: xxx	Adm.No: xxx
+//NAME: Dwibhashyam S S S Aravind	Adm.No: 24je0617
 uint64 sys_clone(void) {
-	return 0;
+	uint64 fcn, arg, stack_ptr;
+	//argaddr() is defines in kernel/syscall.c. It take int n, pointer p, assigns the a(n)'s trapframe of the parent process calling it to the pointer p. argaddr() calles argraw() also defined in kernel/syscall.c and that calls the myproc() to find which process actually called this function. myproc() is defined in kernel/proc.c
+	//we are executing this step because if we directly call the clone(), the kernel has no way of reading its data in the user stack. So we are first retrieving the trapframe from the user mode for further use in the kernel space.
+	argaddr(0, &fcn);
+	argaddr(1, &arg);
+	argaddr(2, &stack_ptr);
+
+	//The actual clone() that will be defined in kernel/defs.h and write the working code in kernel/proc.c
+	return clone(fcn, arg, stack_ptr);
 }
 
 //NAME: xxx	Adm.No: xxx

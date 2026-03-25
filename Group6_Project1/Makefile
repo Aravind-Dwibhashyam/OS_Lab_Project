@@ -153,8 +153,8 @@ UPROGS=\
 	$U/_test_psinfo\
 #added the custom tests for the system calls created manually (the last 6 starting with _test_
 
-fs.img: mkfs/mkfs README $(UPROGS)
-	mkfs/mkfs fs.img README $(UPROGS)
+fs.img: mkfs/mkfs README.md $(UPROGS)
+	mkfs/mkfs fs.img README.md $(UPROGS)
 
 -include kernel/*.d user/*.d
 

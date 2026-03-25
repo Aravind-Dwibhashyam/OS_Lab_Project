@@ -27,7 +27,7 @@ int uptime(void);
 //added the prototypes for the following system calls manually
 int waitpid(void);
 int sendmsg(void);
-int clone(void);
+int clone(void(*fcn), void *arg, void *stack);
 int sem_wait(void);
 int alarm(void);
 int psinfo(void);
