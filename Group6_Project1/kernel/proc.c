@@ -123,6 +123,7 @@ allocproc(void)
 
 found:
   p->pid = allocpid();
+  p->is_thread = 0;
   p->state = USED;
 
   // Allocate a trapframe page.
@@ -158,8 +159,19 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
-  if(p->pagetable)
-    proc_freepagetable(p->pagetable, p->sz);
+  if(p->pagetable) {
+	  if(p->is_thread) {
+		uvmunmap(p->pagetable, 0, PGROUNDUP(p->sz)/PGSIZE, 0); 
+ 		uvmunmap(p->pagetable, TRAMPOLINE, 1, 0);
+ 		uvmunmap(p->pagetable, TRAPFRAME, 1, 0);
+ 		uvmfree(p->pagetable, 0);
+	  }
+	  else {
+		  proc_freepagetable(p->pagetable, p->sz);
+	  }
+  }
+
+	  
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
@@ -304,6 +316,63 @@ kfork(void)
 
   return pid;
 }
+
+int
+clone(uint64 fcn, uint64 arg, uint64 stack)
+{
+  int i, pid;
+  struct proc *np;
+  struct proc *p = myproc();
+
+  // Allocate process.
+  if((np = allocproc()) == 0){
+    return -1;
+  }
+
+  // Shallow copy the memory. They now share the same physical pages!
+  if(uvmmirror(p->pagetable, np->pagetable, p->sz) < 0){
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+  np->sz = p->sz;
+  np->is_thread = 1; // Mark as thread to protect physical memory on exit
+
+
+  // copy saved user registers from parent to child.
+  *(np->trapframe) = *(p->trapframe);
+
+  // Pass the argument to the function
+  np->trapframe->a0 = arg;
+  // instruction pointer starts at the function
+  np->trapframe->epc = fcn;
+  //Force the child to use the new isolated stack we allocated in user space.
+  np->trapframe->sp = stack;
+
+  // increment reference counts on open file descriptors.
+  for(i = 0; i < NOFILE; i++)
+    if(p->ofile[i])
+      np->ofile[i] = filedup(p->ofile[i]);
+  np->cwd = idup(p->cwd);
+
+  safestrcpy(np->name, p->name, sizeof(p->name));
+  pid = np->pid;
+
+  release(&np->lock);
+
+  //Assign the parent under the wait_lock so that wait() works correctly
+  acquire(&wait_lock);
+  np->parent = p;
+  release(&wait_lock);
+
+  // Set the child's state to runnable so that the scheduler can pick it up.
+  acquire(&np->lock);
+  np->state = RUNNABLE;
+  release(&np->lock);
+
+  return pid;
+}
+
 
 // Pass p's abandoned children to init.
 // Caller must hold wait_lock.
