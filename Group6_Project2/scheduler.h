@@ -1,6 +1,6 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
-
+#define MAX_TIME 1000
 struct Process {
 	int pid;
 	int arrival_time;

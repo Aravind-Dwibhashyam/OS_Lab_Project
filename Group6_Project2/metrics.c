@@ -25,7 +25,7 @@ void print_metrics (struct Process processes[], int num_processes) {
 	printf("Average Waiting Time: %.2f\n", total_waiting_time / num_processes);
 }
 
-void print_gantt_chart (int num_cpus, int total_time, int timeline[10][1000]) {
+void print_gantt_chart (int num_cpus, int total_time, int timeline[num_cpus][MAX_TIME]) {
 	printf("\nMULTI-PROCESSOR GANTT CHART\n");
 	
 	printf("Time:\t");
