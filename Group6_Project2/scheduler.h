@@ -22,7 +22,7 @@ struct Process {
 struct Processor {
 	int core_id;
 	int current_pid;	//PID currently running (-1 if idle)
-	int time_left_on_core	//How much longer the current process gets
+	int time_left_on_core;	//How much longer the current process gets
 };
 
 //Function prototype
@@ -34,6 +34,6 @@ void run_rms (struct Process processes[], int num_processes, int num_cpus);
 void run_work_steal (struct Process processes[], int num_processes, int num_cpus);
 
 void print_metrics (struct Process processes[], int num_processes);
-void print_gantt_chart (int num_cpus, int total_time, int timeline[10][1000]);
+void print_gantt_chart (int num_cpus, int total_time, int timeline[num_cpus][MAX_TIME]);
 
 #endif
