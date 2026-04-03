@@ -9,7 +9,7 @@ void print_metrics (struct Process processes[], int num_processes) {
 	printf("PID\tArrival\tBurst\tI/O\tCompletion\tTurnaround\tWaiting\n");
 
 	for (int i=0; i<num_processes; i++) { 
-		printf("P%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+		printf("P%d\t%d\t%d\t%d\t%d\t\t%d\t\t%d\n",
 				processes[i].pid,
 				processes[i].arrival_time,
 				processes[i].burst_time,
@@ -30,7 +30,7 @@ void print_gantt_chart (int num_cpus, int total_time, int timeline[num_cpus][MAX
 	
 	printf("Time:\t");
 	for (int i=0; i<total_time; i++) {
-		printf("%d\t", t);
+		printf("%d\t", i);
 	}
 	printf("\n");
 
