@@ -482,6 +482,74 @@ kwait(uint64 addr)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
+  
+int kwaitpid(int target_pid, uint64 status_addr, int options) {
+    struct proc *np;
+    int havekids, pid;
+    struct proc *p = myproc(); // 'p' is the parent calling waitpid
+
+    // We must acquire wait_lock before looking at any process's parent pointer
+    acquire(&wait_lock);
+
+    for(;;) {
+        // Scan the entire process table looking for our child
+        havekids = 0;
+        for(np = proc; np < &proc[NPROC]; np++) {
+            
+            // Is this process a child of the caller?
+            if(np->parent == p) {
+                
+                // If a specific target_pid was requested, ignore other children
+                if (target_pid > 0 && np->pid != target_pid) {
+                    continue;
+                }
+                
+                // We found a valid child!
+                havekids = 1;
+                
+                // Now we need to look at its state, which requires its specific lock
+                acquire(&np->lock);
+                
+                if(np->state == ZOMBIE) {
+                    // WE CAUGHT A ZOMBIE! Time to harvest it.
+                    pid = np->pid;
+                    
+                    // If the user provided a memory address, copy the exit status to user space
+                    if(status_addr != 0 && copyout(p->pagetable, status_addr, (char *)&np->xstate, sizeof(np->xstate)) < 0) {
+                        release(&np->lock);
+                        release(&wait_lock);
+                        return -1; // Memory error, bail out
+                    }
+                    
+                    // Clean up the dead child's memory
+                    freeproc(np);
+                    
+                    release(&np->lock);
+                    release(&wait_lock);
+                    return pid; // Return the dead child's PID
+                }
+                release(&np->lock);
+            }
+        }
+
+        // If the parent has no children that match the target_pid, return -1 immediately
+        if(!havekids || killed(p)) {
+            release(&wait_lock);
+            return -1;
+        }
+        //Use case of options parameter
+        // If the options parameter is set to 1 (WNOHANG), do not go to sleep! 
+        if (options == 1) {
+            release(&wait_lock);
+            return 0; 
+        }
+        // ----------------------------------
+
+        // If we found the child, but it is STILL RUNNING, we must go to sleep
+        // The child will call wakeup(p) when it eventually calls exit()
+        sleep(p, &wait_lock);
+    }
+}
 
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.

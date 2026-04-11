@@ -110,9 +110,20 @@ sys_uptime(void)
 
 //We will add the function definitions below. Creating different zones to make sure we dont have any merge conflicts
 
-//NAME: xxx	Adm.No: xxx
+//NAME: Dharavath Hrishikesh	Adm.No: 24JE0614
+//NAME: [Type Your Name]	Adm.No: [Type Your Adm.No]
 uint64 sys_waitpid(void) {
-	return 0;
+    int pid;
+    uint64 status; // This is a user-space pointer/address
+    int options;
+
+    // 1. Safely extract the arguments from the trapframe registers
+    argint(0, &pid);
+    argaddr(1, &status);
+    argint(2, &options);
+
+    // 2. Pass them down to the actual kernel function (which we will build next)
+    return kwaitpid(pid, status, options);
 }
 
 //NAME: xxx	Adm.No: xxx

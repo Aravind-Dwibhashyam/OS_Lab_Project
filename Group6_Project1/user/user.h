@@ -25,7 +25,7 @@ char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
 //added the prototypes for the following system calls manually
-int waitpid(void);
+int waitpid(int, int* ,int);
 int sendmsg(void);
 int clone(void(*fcn), void *arg, void *stack);
 int sem_wait(void);
