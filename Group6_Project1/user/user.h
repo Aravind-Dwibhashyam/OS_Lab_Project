@@ -28,7 +28,8 @@ int uptime(void);
 int waitpid(void);
 int sendmsg(void);
 int clone(void(*fcn), void *arg, void *stack);
-int sem_wait(void);
+int sem_wait(int *);
+int sem_post(int *);
 int alarm(void);
 int psinfo(void);
 
