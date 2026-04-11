@@ -48,4 +48,5 @@ entry("sendmsg");
 entry("clone");
 entry("sem_wait");
 entry("alarm");
+entry("alarm_return");
 entry("psinfo");

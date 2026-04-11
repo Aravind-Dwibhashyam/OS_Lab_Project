@@ -81,8 +81,27 @@ usertrap(void)
     kexit(-1);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  // Also check alarm - Sriharsha
+  if(which_dev == 2) {
+    if(p->alarm_interval > 0 && p->alarm_active == 0) {
+      p->alarm_ticks++;
+      if(p->alarm_ticks >= p->alarm_interval) {
+        // Time to fire the alarm!
+        // 1. Allocate a backup copy of the current trapframe
+        p->alarm_trapframe = (struct trapframe *)kalloc();
+        if(p->alarm_trapframe) {
+          memmove(p->alarm_trapframe, p->trapframe, sizeof(struct trapframe));
+          // 2. Redirect the program counter to the user handler
+          p->trapframe->epc = p->alarm_handler;
+          // 3. Mark alarm as active (prevent re-entrancy)
+          p->alarm_active = 1;
+          // 4. Reset tick counter
+          p->alarm_ticks = 0;
+        }
+      }
+    }
     yield();
+  }
 
   prepare_return();
 

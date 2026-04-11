@@ -149,9 +149,31 @@ uint64 sys_sem_wait(void) {
 	return 0;
 }
 
-//NAME: xxx	Adm.No: xxx
+//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
 uint64 sys_alarm(void) {
+	int interval;
+	uint64 handler;
+
+	// Extract the arguments from the trapframe registers
+	// arg0 = number of ticks between alarms
+	// arg1 = pointer to the user-space handler function
+	argint(0, &interval);
+	argaddr(1, &handler);
+
+	struct proc *p = myproc();
+	p->alarm_interval = interval;
+	p->alarm_handler = handler;
+	p->alarm_ticks = 0;
+	p->alarm_active = 0;
+
 	return 0;
+}
+
+//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
+// Called by the user program after the alarm handler finishes
+// to restore the saved registers and resume normal execution.
+uint64 sys_alarm_return(void) {
+	return alarm_return();
 }
 
 //NAME: xxx	Adm.No: xxx
