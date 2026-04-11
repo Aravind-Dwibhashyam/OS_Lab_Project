@@ -41,7 +41,7 @@ int main() {
 
 	switch(choice) {
 		case 1: run_mlfq(processes, num_processes, num_cpus); break;
-		//case 2: run_fcfs(processes, num_processes, num_cpus); break;
+		case 2: run_fcfs(processes, num_processes, num_cpus); break;
 		//case 3: run_lottery(processes, num_processes, num_cpus); break;
 		//case 4: run_edf(processes, num_processes, num_cpus); break;
 		//case 5: run_rms(processes, num_processes, num_cpus); break;
