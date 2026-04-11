@@ -149,6 +149,7 @@ UPROGS=\
 	$U/_test_sendmsg\
 	$U/_test_clone\
 	$U/_test_sem_wait\
+	$U/_semtest\
 	$U/_test_alarm\
 	$U/_test_psinfo\
 #added the custom tests for the system calls created manually (the last 6 starting with _test_
