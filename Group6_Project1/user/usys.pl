@@ -47,5 +47,6 @@ entry("waitpid");
 entry("sendmsg");
 entry("clone");
 entry("sem_wait");
+entry("sem_post");
 entry("alarm");
 entry("psinfo");

@@ -28,3 +28,4 @@
 #define SYS_sem_wait	25
 #define SYS_alarm	26
 #define SYS_psinfo	27
+#define SYS_sem_post	28

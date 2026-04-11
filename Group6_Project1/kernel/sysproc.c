@@ -133,9 +133,69 @@ uint64 sys_clone(void) {
 	return clone(fcn, arg, stack_ptr);
 }
 
-//NAME: xxx	Adm.No: xxx
-uint64 sys_sem_wait(void) {
-	return 0;
+//Name: Dipesh Jain	Roll Number: 24JE0616
+uint64
+sys_sem_wait(void)
+{
+  uint64 semaddr;
+  int semval;
+  struct proc *p = myproc();
+
+  argaddr(0, &semaddr);
+
+  acquire(&sem_lock);
+  for(;;){
+    if(copyin(p->pagetable, (char *)&semval, semaddr, sizeof(semval)) < 0){
+      release(&sem_lock);
+      return -1;
+    }
+
+    if(semval > 0){
+      semval--;
+      if(copyout(p->pagetable, semaddr, (char *)&semval, sizeof(semval)) < 0){
+        release(&sem_lock);
+        return -1;
+      }
+      release(&sem_lock);
+      return 0;
+    }
+
+    if(killed(p)){
+      release(&sem_lock);
+      return -1;
+    }
+
+    sleep((void*)semaddr, &sem_lock);
+  }
+}
+
+
+//Name: Dipesh Jain	Roll Number: 24JE0616
+uint64
+sys_sem_post(void)
+{
+  uint64 semaddr;
+  int semval;
+  struct proc *p = myproc();
+
+  argaddr(0, &semaddr);
+
+  acquire(&sem_lock);
+  if(copyin(p->pagetable, (char *)&semval, semaddr, sizeof(semval)) < 0){
+    release(&sem_lock);
+    return -1;
+  }
+
+  semval++;
+
+  if(copyout(p->pagetable, semaddr, (char *)&semval, sizeof(semval)) < 0){
+    release(&sem_lock);
+    return -1;
+  }
+
+  wakeup((void*)semaddr);
+  release(&sem_lock);
+  return 0;
 }
 
 //NAME: xxx	Adm.No: xxx
