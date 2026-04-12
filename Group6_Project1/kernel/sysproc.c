@@ -6,6 +6,13 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "spinlock.h"
+
+struct {
+  struct spinlock lock;
+  char msg[128];
+  int has_message; // 0 = empty, 1 = full
+}mailbox;
 
 uint64
 sys_exit(void)
@@ -126,9 +133,64 @@ uint64 sys_waitpid(void) {
     return kwaitpid(pid, status, options);
 }
 
-//NAME: xxx	Adm.No: xxx
+//NAME: Dhruv Thakkar	Adm.No: 24JE0615
+
+int mailbox_init = 0;
+
 uint64 sys_sendmsg(void) {
+	char buf[128];
+	uint64 user_ptr;
+	
+	// Unwrap the argument from the hardware registers
+ 	argaddr(0, &user_ptr);
+
+	// Safely fetch the string from user space to kernel space
+  	if(fetchstr(user_ptr, buf, 128) < 0)
+    	return -1;
+
+  	if(!mailbox_init) {
+    	initlock(&mailbox.lock, "mailbox");
+    	mailbox_init = 1;
+  	}
+
+  	acquire(&mailbox.lock);
+
+  	// Copy the message into our secure kernel mailbox
+  	safestrcpy(mailbox.msg, buf, sizeof(mailbox.msg));
+  	mailbox.has_message = 1; // Change state to FULL
+
+  	release(&mailbox.lock);
 	return 0;
+}
+
+uint64
+sys_recvmsg(void)
+{
+  uint64 user_ptr;
+
+  argaddr(0, &user_ptr);
+
+  if(!mailbox_init) {
+    return -1; // Mailbox hasn't been used yet
+  }
+
+  acquire(&mailbox.lock);
+
+  if(mailbox.has_message == 0) {
+    release(&mailbox.lock);
+    return -1; // No message to read
+  }
+
+  // Use copyout to push the data from the kernel back into user memory
+  if(copyout(myproc()->pagetable, user_ptr, mailbox.msg, strlen(mailbox.msg) + 1) < 0) {
+    release(&mailbox.lock);
+    return -1;
+  }
+
+  mailbox.has_message = 0; // Clear the mailbox
+  release(&mailbox.lock);
+
+  return 0; // Success
 }
 
 //NAME: Dwibhashyam S S S Aravind	Adm.No: 24je0617
