@@ -108,8 +108,7 @@ extern uint64 sys_clone(void);
 extern uint64 sys_sem_wait(void);
 extern uint64 sys_alarm(void);
 extern uint64 sys_psinfo(void);
-extern uint64 sys_sendmsg(void);
-extern uint64 sys_recvmsg(void);
+extern uint64 sys_alarm_return(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -142,8 +141,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_sem_wait] sys_sem_wait,
 [SYS_alarm]    sys_alarm,
 [SYS_psinfo]   sys_psinfo,
-[SYS_sendmsg]  sys_sendmsg,
-[SYS_recvmsg]  sys_recvmsg,
+[SYS_alarm_return] sys_alarm_return,
 };
 
 void

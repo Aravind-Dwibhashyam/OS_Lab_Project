@@ -104,6 +104,8 @@ int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 	//added aravind's definition of clone function
 int		clone(uint64, uint64, uint64);
+	//added sriharsha's alarm functions
+int		alarm_return(void);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

@@ -47,6 +47,7 @@ entry("waitpid");
 entry("clone");
 entry("sem_wait");
 entry("alarm");
+entry("alarm_return");
 entry("psinfo");
 entry("sendmsg");
 entry("recvmsg");
