@@ -17,6 +17,7 @@ struct Process {
 	int completion_time;
 	int turnaround_time;
 	int waiting_time;
+	int deadline_missed;
 };
 
 struct Processor {

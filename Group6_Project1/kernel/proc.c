@@ -1,5 +1,6 @@
 #include "types.h"
 #include "param.h"
+#include "psinfo.h"
 #include "memlayout.h"
 #include "riscv.h"
 #include "spinlock.h"
@@ -842,6 +843,66 @@ procdump(void)
   }
 }
 
+// ============================================================
+// SYSTEM CALL: psinfo
+// AUTHOR: Dhanya Gautam   ADM NO: 24je0613
+// PURPOSE: Reads the kernel process table and safely transfers
+//          the status of all active processes to user space.
+// ============================================================
+int
+psinfo(struct procinfo *pinfo, int max)
+{
+  struct proc *p;
+  int count = 0;
+  struct procinfo info;
+
+  static char *states[] = {
+    [UNUSED]    "UNUSED",
+    [USED]      "USED",
+    [SLEEPING]  "SLEEPING",
+    [RUNNABLE]  "RUNNABLE",
+    [RUNNING]   "RUNNING",
+    [ZOMBIE]    "ZOMBIE"
+  };
+
+  struct proc *caller = myproc();
+
+  acquire(&wait_lock);
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state == UNUSED){
+      release(&p->lock);
+      continue;
+    }
+    if(count >= max){
+      release(&p->lock);
+      break;
+    }
+
+    info.pid = p->pid;
+    safestrcpy(info.name, p->name, sizeof(info.name));
+
+    if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
+      safestrcpy(info.state, states[p->state], sizeof(info.state));
+    else
+      safestrcpy(info.state, "???", sizeof(info.state));
+
+    release(&p->lock);
+
+    // copyout se user space mein safely likhte hain
+    if(copyout(caller->pagetable, (uint64)(pinfo + count),
+               (char*)&info, sizeof(info)) < 0){
+      release(&wait_lock);
+      return -1;
+    }
+
+    count++;
+  }
+  release(&wait_lock);
+  return count;
+}
+
+
 // alarm_return: restore the saved trapframe after the alarm handler finishes
 // Called via the alarm_return system call from user space.
 // Author: Sriharsha
@@ -865,3 +926,4 @@ alarm_return(void)
 
   return 0;
 }
+

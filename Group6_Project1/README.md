@@ -54,6 +54,6 @@ git push origin yourBranchName
    * **What it is:** A timer-based software interrupt.
    * **The Task:** This allows a user program to ask the kernel to interrupt it after a specific amount of time. The program calls alarm(ticks, handler_function), and after that number of CPU timer ticks pass, the kernel forces the program to pause and execute the specific handler function before resuming its normal code.
 
-6. **psinfo (System Diagnostics) - Unassigned**
+6. **psinfo (System Diagnostics) - Dhanya Gautam**
    * **What it is:** A snapshot of the operating system's current state.
    * **The Task:** This system call reads the kernel's internal process table and returns a formatted array containing the status of every active process running on the OS (including its PID, name, and whether it is RUNNING, SLEEPING, or a ZOMBIE).
