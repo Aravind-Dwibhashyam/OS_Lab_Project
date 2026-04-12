@@ -149,7 +149,7 @@ uint64 sys_sem_wait(void) {
 	return 0;
 }
 
-//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
+//NAME: Sriharsha	Adm.No:24je0618
 uint64 sys_alarm(void) {
 	int interval;
 	uint64 handler;
@@ -169,7 +169,7 @@ uint64 sys_alarm(void) {
 	return 0;
 }
 
-//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
+//NAME: Sriharsha	Adm.No: 24je0618
 // Called by the user program after the alarm handler finishes
 // to restore the saved registers and resume normal execution.
 uint64 sys_alarm_return(void) {
