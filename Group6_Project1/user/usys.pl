@@ -44,8 +44,10 @@ entry("pause");
 entry("uptime");
 #added the following entries manually
 entry("waitpid");
-entry("sendmsg");
 entry("clone");
 entry("sem_wait");
 entry("alarm");
+entry("alarm_return");
 entry("psinfo");
+entry("sendmsg");
+entry("recvmsg");
