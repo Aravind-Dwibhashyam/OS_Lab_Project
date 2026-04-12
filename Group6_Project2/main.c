@@ -12,6 +12,7 @@ void initialize_test_data (struct Process p[], int n) {
 		p[i].deadline = p[i].arrival_time + p[i].burst_time + (rand()%10);
 		p[i].period = p[i].deadline+5;
 		p[i].io_wait_time = rand()%3;
+		p[i].deadline_missed = 0;
 	}
 }
 
@@ -43,7 +44,7 @@ int main() {
 		case 1: run_mlfq(processes, num_processes, num_cpus); break;
 		//case 2: run_fcfs(processes, num_processes, num_cpus); break;
 		//case 3: run_lottery(processes, num_processes, num_cpus); break;
-		//case 4: run_edf(processes, num_processes, num_cpus); break;
+		case 4: run_edf(processes, num_processes, num_cpus); break;
 		//case 5: run_rms(processes, num_processes, num_cpus); break;
 		//case 6: run_work_steal(processes, num_processes, num_cpus); break;
 		default: printf("Invalid choice\n");
