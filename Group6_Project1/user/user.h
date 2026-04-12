@@ -26,11 +26,12 @@ int pause(int);
 int uptime(void);
 //added the prototypes for the following system calls manually
 int waitpid(int, int* ,int);
-int sendmsg(void);
 int clone(void(*fcn), void *arg, void *stack);
 int sem_wait(void);
 int alarm(void);
 int psinfo(void);
+int sendmsg(char*);
+int recvmsg(char*);
 
 // ulib.c
 int stat(const char*, struct stat*);
