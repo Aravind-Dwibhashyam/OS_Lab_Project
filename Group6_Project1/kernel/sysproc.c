@@ -118,7 +118,6 @@ sys_uptime(void)
 //We will add the function definitions below. Creating different zones to make sure we dont have any merge conflicts
 
 //NAME: Dharavath Hrishikesh	Adm.No: 24JE0614
-//NAME: [Type Your Name]	Adm.No: [Type Your Adm.No]
 uint64 sys_waitpid(void) {
     int pid;
     uint64 status; // This is a user-space pointer/address
@@ -211,7 +210,7 @@ uint64 sys_sem_wait(void) {
 	return 0;
 }
 
-//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
+//NAME: Sriharsha	Adm.No: 24je0618
 uint64 sys_alarm(void) {
 	int interval;
 	uint64 handler;
