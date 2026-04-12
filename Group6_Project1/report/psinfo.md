@@ -95,4 +95,4 @@ Children finished!
 
 **For reffernce output image is attached below ->**
 
-![psinfo output](output_images/image.png)
+!![psinfo output](image.png)
