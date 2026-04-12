@@ -1,3 +1,4 @@
+#include "kernel/psinfo.h"
 #define SBRK_ERROR ((char *)-1)
 
 struct stat;
@@ -30,7 +31,7 @@ int sendmsg(void);
 int clone(void(*fcn), void *arg, void *stack);
 int sem_wait(void);
 int alarm(void);
-int psinfo(void);
+int psinfo(struct procinfo*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

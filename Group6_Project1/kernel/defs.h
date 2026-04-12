@@ -1,3 +1,4 @@
+#include "psinfo.h"
 struct buf;
 struct context;
 struct file;
@@ -8,6 +9,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct procinfo;
 
 // bio.c
 void            binit(void);
@@ -78,6 +80,8 @@ void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
 
 // proc.c
+//added dhanya's definition of psinfo
+int             psinfo(struct procinfo*, int);
 int             cpuid(void);
 void            kexit(int);
 int             kfork(void);

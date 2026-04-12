@@ -6,6 +6,20 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "psinfo.h"
+
+//name: dhanya gautam	adm no: 24je0613
+uint64
+sys_psinfo(void)
+{
+  uint64 addr;
+  int max;
+
+  argaddr(0, &addr);
+  argint(1, &max);
+
+  return psinfo((struct procinfo *)addr, max);
+}
 
 uint64
 sys_exit(void)
@@ -155,7 +169,4 @@ uint64 sys_alarm(void) {
 }
 
 //NAME: xxx	Adm.No: xxx
-uint64 sys_psinfo(void) {
-	return 0;
-}
 
