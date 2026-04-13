@@ -105,4 +105,11 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   int is_thread;
+
+  // Alarm signal fields - Sriharsha
+  int alarm_interval;            // Alarm interval in ticks (0 = disabled)
+  int alarm_ticks;               // Ticks elapsed since alarm was set/last fired
+  uint64 alarm_handler;          // User-space handler function address
+  struct trapframe *alarm_trapframe; // Saved trapframe before calling handler
+  int alarm_active;              // 1 if handler is currently executing (prevent re-entry)
 };

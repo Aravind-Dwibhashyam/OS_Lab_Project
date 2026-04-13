@@ -1,5 +1,6 @@
 #include "types.h"
 #include "param.h"
+#include "psinfo.h"
 #include "memlayout.h"
 #include "riscv.h"
 #include "spinlock.h"
@@ -25,6 +26,7 @@ extern char trampoline[]; // trampoline.S
 // memory model when using p->parent.
 // must be acquired before any p->lock.
 struct spinlock wait_lock;
+struct spinlock sem_lock;
 
 // Allocate a page for each process's kernel stack.
 // Map it high in memory, followed by an invalid
@@ -51,6 +53,7 @@ procinit(void)
   
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
+  initlock(&sem_lock, "sem_lock");
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
       p->state = UNUSED;
@@ -147,6 +150,13 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  // Initialize alarm fields - Sriharsha
+  p->alarm_interval = 0;
+  p->alarm_ticks = 0;
+  p->alarm_handler = 0;
+  p->alarm_trapframe = 0;
+  p->alarm_active = 0;
+
   return p;
 }
 
@@ -159,6 +169,10 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
+  // Free alarm trapframe backup - Sriharsha
+  if(p->alarm_trapframe)
+    kfree((void*)p->alarm_trapframe);
+  p->alarm_trapframe = 0;
   if(p->pagetable) {
 	  if(p->is_thread) {
 		uvmunmap(p->pagetable, 0, PGROUNDUP(p->sz)/PGSIZE, 0); 
@@ -181,6 +195,11 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  // Reset alarm fields - Sriharsha
+  p->alarm_interval = 0;
+  p->alarm_ticks = 0;
+  p->alarm_handler = 0;
+  p->alarm_active = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -825,3 +844,88 @@ procdump(void)
     printf("\n");
   }
 }
+
+// ============================================================
+// SYSTEM CALL: psinfo
+// AUTHOR: Dhanya Gautam   ADM NO: 24je0613
+// PURPOSE: Reads the kernel process table and safely transfers
+//          the status of all active processes to user space.
+// ============================================================
+int
+psinfo(struct procinfo *pinfo, int max)
+{
+  struct proc *p;
+  int count = 0;
+  struct procinfo info;
+
+  static char *states[] = {
+    [UNUSED]    "UNUSED",
+    [USED]      "USED",
+    [SLEEPING]  "SLEEPING",
+    [RUNNABLE]  "RUNNABLE",
+    [RUNNING]   "RUNNING",
+    [ZOMBIE]    "ZOMBIE"
+  };
+
+  struct proc *caller = myproc();
+
+  acquire(&wait_lock);
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state == UNUSED){
+      release(&p->lock);
+      continue;
+    }
+    if(count >= max){
+      release(&p->lock);
+      break;
+    }
+
+    info.pid = p->pid;
+    safestrcpy(info.name, p->name, sizeof(info.name));
+
+    if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
+      safestrcpy(info.state, states[p->state], sizeof(info.state));
+    else
+      safestrcpy(info.state, "???", sizeof(info.state));
+
+    release(&p->lock);
+
+    // copyout se user space mein safely likhte hain
+    if(copyout(caller->pagetable, (uint64)(pinfo + count),
+               (char*)&info, sizeof(info)) < 0){
+      release(&wait_lock);
+      return -1;
+    }
+
+    count++;
+  }
+  release(&wait_lock);
+  return count;
+}
+
+
+// alarm_return: restore the saved trapframe after the alarm handler finishes
+// Called via the alarm_return system call from user space.
+// Author: Sriharsha
+int
+alarm_return(void)
+{
+  struct proc *p = myproc();
+
+  // Restore the trapframe that was saved before the handler was invoked
+  memmove(p->trapframe, p->alarm_trapframe, sizeof(struct trapframe));
+
+  // Free the backup trapframe
+  kfree((void *)p->alarm_trapframe);
+  p->alarm_trapframe = 0;
+
+  // Mark alarm as no longer active so future alarms can fire
+  p->alarm_active = 0;
+
+  // Reset the tick counter for the next alarm cycle
+  p->alarm_ticks = 0;
+
+  return 0;
+}
+

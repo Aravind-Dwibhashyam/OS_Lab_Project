@@ -6,7 +6,21 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
-#include "spinlock.h"
+#include "psinfo.h"
+
+//name: dhanya gautam	adm no: 24je0613
+uint64
+sys_psinfo(void)
+{
+  uint64 addr;
+  int max;
+
+  argaddr(0, &addr);
+  argint(1, &max);
+
+  return psinfo((struct procinfo *)addr, max);
+}
+
 
 struct {
   struct spinlock lock;
@@ -118,7 +132,6 @@ sys_uptime(void)
 //We will add the function definitions below. Creating different zones to make sure we dont have any merge conflicts
 
 //NAME: Dharavath Hrishikesh	Adm.No: 24JE0614
-//NAME: [Type Your Name]	Adm.No: [Type Your Adm.No]
 uint64 sys_waitpid(void) {
     int pid;
     uint64 status; // This is a user-space pointer/address
@@ -206,18 +219,97 @@ uint64 sys_clone(void) {
 	return clone(fcn, arg, stack_ptr);
 }
 
-//NAME: xxx	Adm.No: xxx
-uint64 sys_sem_wait(void) {
-	return 0;
+//Name: Dipesh Jain	Roll Number: 24JE0616
+uint64
+sys_sem_wait(void)
+{
+  uint64 semaddr;
+  int semval;
+  struct proc *p = myproc();
+
+  argaddr(0, &semaddr);
+
+  acquire(&sem_lock);
+  for(;;){
+    if(copyin(p->pagetable, (char *)&semval, semaddr, sizeof(semval)) < 0){
+      release(&sem_lock);
+      return -1;
+    }
+
+    if(semval > 0){
+      semval--;
+      if(copyout(p->pagetable, semaddr, (char *)&semval, sizeof(semval)) < 0){
+        release(&sem_lock);
+        return -1;
+      }
+      release(&sem_lock);
+      return 0;
+    }
+
+    if(killed(p)){
+      release(&sem_lock);
+      return -1;
+    }
+
+    sleep((void*)semaddr, &sem_lock);
+  }
 }
 
-//NAME: xxx	Adm.No: xxx
+
+//Name: Dipesh Jain	Roll Number: 24JE0616
+uint64
+sys_sem_post(void)
+{
+  uint64 semaddr;
+  int semval;
+  struct proc *p = myproc();
+
+  argaddr(0, &semaddr);
+
+  acquire(&sem_lock);
+  if(copyin(p->pagetable, (char *)&semval, semaddr, sizeof(semval)) < 0){
+    release(&sem_lock);
+    return -1;
+  }
+
+  semval++;
+
+  if(copyout(p->pagetable, semaddr, (char *)&semval, sizeof(semval)) < 0){
+    release(&sem_lock);
+    return -1;
+  }
+
+  wakeup((void*)semaddr);
+  release(&sem_lock);
+  return 0;
+}
+
+//NAME: Sriharsha	Adm.No: 24je0618
 uint64 sys_alarm(void) {
+	int interval;
+	uint64 handler;
+
+	// Extract the arguments from the trapframe registers
+	// arg0 = number of ticks between alarms
+	// arg1 = pointer to the user-space handler function
+	argint(0, &interval);
+	argaddr(1, &handler);
+
+	struct proc *p = myproc();
+	p->alarm_interval = interval;
+	p->alarm_handler = handler;
+	p->alarm_ticks = 0;
+	p->alarm_active = 0;
+
 	return 0;
 }
 
-//NAME: xxx	Adm.No: xxx
-uint64 sys_psinfo(void) {
-	return 0;
+//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
+// Called by the user program after the alarm handler finishes
+// to restore the saved registers and resume normal execution.
+uint64 sys_alarm_return(void) {
+	return alarm_return();
 }
+
+//NAME: xxx	Adm.No: xxx
 

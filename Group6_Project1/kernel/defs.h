@@ -1,3 +1,4 @@
+#include "psinfo.h"
 struct buf;
 struct context;
 struct file;
@@ -8,6 +9,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct procinfo;
 
 // bio.c
 void            binit(void);
@@ -78,6 +80,8 @@ void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
 
 // proc.c
+//added dhanya's definition of psinfo
+int             psinfo(struct procinfo*, int);
 int             cpuid(void);
 void            kexit(int);
 int             kfork(void);
@@ -104,6 +108,8 @@ int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 	//added aravind's definition of clone function
 int		clone(uint64, uint64, uint64);
+	//added sriharsha's alarm functions
+int		alarm_return(void);
 
 // swtch.S
 void            swtch(struct context*, struct context*);
@@ -144,6 +150,7 @@ extern uint     ticks;
 void            trapinit(void);
 void            trapinithart(void);
 extern struct spinlock tickslock;
+extern struct spinlock sem_lock;
 void            prepare_return(void);
 
 // uart.c
