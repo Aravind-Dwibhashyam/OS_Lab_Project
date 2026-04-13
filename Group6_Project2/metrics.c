@@ -6,10 +6,10 @@ void print_metrics (struct Process processes[], int num_processes) {
 	float total_turnaround_time = 0;
 
 	printf("\nFINAL PERFORMANCE METRICS\n");
-	printf("PID\tArrival\tBurst\tI/O\tDeadline\tCompletion\tTurnaround\tWaiting\tMissed\n");
+	printf("PID\tArrival\tBurst\tI/O\tDeadline\tCompletion\tTurnaround\tWaiting\n");
 
 	for (int i=0; i<num_processes; i++) { 
-		printf("P%d\t%d\t%d\t%d\t%d\t\t%d\t\t%d\t\t%d\t%s\n",
+		printf("P%d\t%d\t%d\t%d\t%d\t\t%d\t\t%d\t\t%d\n",
 				processes[i].pid,
 				processes[i].arrival_time,
 				processes[i].burst_time,
@@ -17,14 +17,14 @@ void print_metrics (struct Process processes[], int num_processes) {
 				processes[i].deadline,
 				processes[i].completion_time,
 				processes[i].turnaround_time,
-				processes[i].waiting_time,
-				processes[i].deadline_missed ? "[MISS]" : "[OK]"
+				processes[i].waiting_time
+				//processes[i].deadline_missed ? "[MISS]" : "[OK]"
 			);
 		total_waiting_time += processes[i].waiting_time;
 		total_turnaround_time += processes[i].turnaround_time;
 	}
 	printf("\nAverage Turnaround Time: %.2f\n", total_turnaround_time / num_processes);
-	printf("Average Waiting Time: %.2f\n", total_waiting_time / num_processes);
+	printf("Average Waiting Time: %.2f\n\n", total_waiting_time / num_processes);
 }
 
 void print_gantt_chart (int num_cpus, int total_time, int timeline[num_cpus][MAX_TIME]) {

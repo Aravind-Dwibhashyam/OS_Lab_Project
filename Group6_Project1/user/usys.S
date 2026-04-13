@@ -110,11 +110,6 @@ waitpid:
  li a7, SYS_waitpid
  ecall
  ret
-.global sendmsg
-sendmsg:
- li a7, SYS_sendmsg
- ecall
- ret
 .global clone
 clone:
  li a7, SYS_clone
@@ -125,13 +120,33 @@ sem_wait:
  li a7, SYS_sem_wait
  ecall
  ret
+.global sem_post
+sem_post:
+ li a7, SYS_sem_post
+ ecall
+ ret
 .global alarm
 alarm:
  li a7, SYS_alarm
  ecall
  ret
+.global alarm_return
+alarm_return:
+ li a7, SYS_alarm_return
+ ecall
+ ret
 .global psinfo
 psinfo:
  li a7, SYS_psinfo
+ ecall
+ ret
+.global sendmsg
+sendmsg:
+ li a7, SYS_sendmsg
+ ecall
+ ret
+.global recvmsg
+recvmsg:
+ li a7, SYS_recvmsg
  ecall
  ret

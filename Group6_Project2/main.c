@@ -19,7 +19,7 @@ void initialize_test_data (struct Process p[], int n) {
 int main() {
 	int num_processes, num_cpus;
 	int choice;
-	
+do {
 	printf("Enter the number of processes: ");
 	scanf("%d", &num_processes);	
 	printf("Enter the number of CPUs: ");
@@ -27,7 +27,7 @@ int main() {
 
 	struct Process processes[num_processes];
 
-	//generate dummy data
+//generate dummy data
 	initialize_test_data (processes, num_processes);
 
 	printf("\nSelect Algorithm to run:\n");
@@ -52,6 +52,7 @@ int main() {
 		case 6: run_work_steal(processes, num_processes, num_cpus); break;
 		default: printf("Invalid choice\n");
 	}
+} while (choice >= 1 && choice <= 6);
 
 	return 0;
 }

@@ -20,8 +20,6 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
-#define SYS_sendmsg 23
-#define SYS_recvmsg 24
 
 //added the below definitions manually
 #define SYS_waitpid 	22
@@ -32,3 +30,4 @@
 #define SYS_psinfo	27
 #define SYS_alarm_return 28
 #define SYS_sem_post	29
+#define SYS_recvmsg	30
