@@ -6,6 +6,27 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "psinfo.h"
+
+//name: dhanya gautam	adm no: 24je0613
+uint64
+sys_psinfo(void)
+{
+  uint64 addr;
+  int max;
+
+  argaddr(0, &addr);
+  argint(1, &max);
+
+  return psinfo((struct procinfo *)addr, max);
+}
+
+
+struct {
+  struct spinlock lock;
+  char msg[128];
+  int has_message; // 0 = empty, 1 = full
+}mailbox;
 
 uint64
 sys_exit(void)
@@ -110,14 +131,79 @@ sys_uptime(void)
 
 //We will add the function definitions below. Creating different zones to make sure we dont have any merge conflicts
 
-//NAME: xxx	Adm.No: xxx
+//NAME: Dharavath Hrishikesh	Adm.No: 24JE0614
 uint64 sys_waitpid(void) {
+    int pid;
+    uint64 status; // This is a user-space pointer/address
+    int options;
+
+    // 1. Safely extract the arguments from the trapframe registers
+    argint(0, &pid);
+    argaddr(1, &status);
+    argint(2, &options);
+
+    // 2. Pass them down to the actual kernel function (which we will build next)
+    return kwaitpid(pid, status, options);
+}
+
+//NAME: Dhruv Thakkar	Adm.No: 24JE0615
+
+int mailbox_init = 0;
+
+uint64 sys_sendmsg(void) {
+	char buf[128];
+	uint64 user_ptr;
+	
+	// Unwrap the argument from the hardware registers
+ 	argaddr(0, &user_ptr);
+
+	// Safely fetch the string from user space to kernel space
+  	if(fetchstr(user_ptr, buf, 128) < 0)
+    	return -1;
+
+  	if(!mailbox_init) {
+    	initlock(&mailbox.lock, "mailbox");
+    	mailbox_init = 1;
+  	}
+
+  	acquire(&mailbox.lock);
+
+  	// Copy the message into our secure kernel mailbox
+  	safestrcpy(mailbox.msg, buf, sizeof(mailbox.msg));
+  	mailbox.has_message = 1; // Change state to FULL
+
+  	release(&mailbox.lock);
 	return 0;
 }
 
-//NAME: xxx	Adm.No: xxx
-uint64 sys_sendmsg(void) {
-	return 0;
+uint64
+sys_recvmsg(void)
+{
+  uint64 user_ptr;
+
+  argaddr(0, &user_ptr);
+
+  if(!mailbox_init) {
+    return -1; // Mailbox hasn't been used yet
+  }
+
+  acquire(&mailbox.lock);
+
+  if(mailbox.has_message == 0) {
+    release(&mailbox.lock);
+    return -1; // No message to read
+  }
+
+  // Use copyout to push the data from the kernel back into user memory
+  if(copyout(myproc()->pagetable, user_ptr, mailbox.msg, strlen(mailbox.msg) + 1) < 0) {
+    release(&mailbox.lock);
+    return -1;
+  }
+
+  mailbox.has_message = 0; // Clear the mailbox
+  release(&mailbox.lock);
+
+  return 0; // Success
 }
 
 //NAME: Dwibhashyam S S S Aravind	Adm.No: 24je0617
@@ -198,13 +284,32 @@ sys_sem_post(void)
   return 0;
 }
 
-//NAME: xxx	Adm.No: xxx
+//NAME: Sriharsha	Adm.No: 24je0618
 uint64 sys_alarm(void) {
+	int interval;
+	uint64 handler;
+
+	// Extract the arguments from the trapframe registers
+	// arg0 = number of ticks between alarms
+	// arg1 = pointer to the user-space handler function
+	argint(0, &interval);
+	argaddr(1, &handler);
+
+	struct proc *p = myproc();
+	p->alarm_interval = interval;
+	p->alarm_handler = handler;
+	p->alarm_ticks = 0;
+	p->alarm_active = 0;
+
 	return 0;
 }
 
-//NAME: xxx	Adm.No: xxx
-uint64 sys_psinfo(void) {
-	return 0;
+//NAME: Sriharsha	Adm.No: [Sriharsha's Adm.No]
+// Called by the user program after the alarm handler finishes
+// to restore the saved registers and resume normal execution.
+uint64 sys_alarm_return(void) {
+	return alarm_return();
 }
+
+//NAME: xxx	Adm.No: xxx
 

@@ -61,7 +61,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
-CFLAGS = -Wall -Werror -Wno-unknown-attributes -O -fno-omit-frame-pointer -ggdb -gdwarf-2
+CFLAGS = -Wall -Werror -Wno-error=infinite-recursion -Wno-unknown-attributes -O -fno-omit-frame-pointer -ggdb -gdwarf-2
 CFLAGS += -march=rv64gc
 CFLAGS += -MD
 CFLAGS += -mcmodel=medany
@@ -151,6 +151,7 @@ UPROGS=\
 	$U/_test_sem_wait\
 	$U/_semtest\
 	$U/_test_alarm\
+	$U/_psinfo\
 	$U/_test_psinfo\
 #added the custom tests for the system calls created manually (the last 6 starting with _test_
 

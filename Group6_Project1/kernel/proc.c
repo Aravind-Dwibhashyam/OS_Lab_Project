@@ -1,5 +1,6 @@
 #include "types.h"
 #include "param.h"
+#include "psinfo.h"
 #include "memlayout.h"
 #include "riscv.h"
 #include "spinlock.h"
@@ -149,6 +150,13 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  // Initialize alarm fields - Sriharsha
+  p->alarm_interval = 0;
+  p->alarm_ticks = 0;
+  p->alarm_handler = 0;
+  p->alarm_trapframe = 0;
+  p->alarm_active = 0;
+
   return p;
 }
 
@@ -161,6 +169,10 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
+  // Free alarm trapframe backup - Sriharsha
+  if(p->alarm_trapframe)
+    kfree((void*)p->alarm_trapframe);
+  p->alarm_trapframe = 0;
   if(p->pagetable) {
 	  if(p->is_thread) {
 		uvmunmap(p->pagetable, 0, PGROUNDUP(p->sz)/PGSIZE, 0); 
@@ -183,6 +195,11 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  // Reset alarm fields - Sriharsha
+  p->alarm_interval = 0;
+  p->alarm_ticks = 0;
+  p->alarm_handler = 0;
+  p->alarm_active = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -484,6 +501,74 @@ kwait(uint64 addr)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
+  
+int kwaitpid(int target_pid, uint64 status_addr, int options) {
+    struct proc *np;
+    int havekids, pid;
+    struct proc *p = myproc(); // 'p' is the parent calling waitpid
+
+    // We must acquire wait_lock before looking at any process's parent pointer
+    acquire(&wait_lock);
+
+    for(;;) {
+        // Scan the entire process table looking for our child
+        havekids = 0;
+        for(np = proc; np < &proc[NPROC]; np++) {
+            
+            // Is this process a child of the caller?
+            if(np->parent == p) {
+                
+                // If a specific target_pid was requested, ignore other children
+                if (target_pid > 0 && np->pid != target_pid) {
+                    continue;
+                }
+                
+                // We found a valid child!
+                havekids = 1;
+                
+                // Now we need to look at its state, which requires its specific lock
+                acquire(&np->lock);
+                
+                if(np->state == ZOMBIE) {
+                    // WE CAUGHT A ZOMBIE! Time to harvest it.
+                    pid = np->pid;
+                    
+                    // If the user provided a memory address, copy the exit status to user space
+                    if(status_addr != 0 && copyout(p->pagetable, status_addr, (char *)&np->xstate, sizeof(np->xstate)) < 0) {
+                        release(&np->lock);
+                        release(&wait_lock);
+                        return -1; // Memory error, bail out
+                    }
+                    
+                    // Clean up the dead child's memory
+                    freeproc(np);
+                    
+                    release(&np->lock);
+                    release(&wait_lock);
+                    return pid; // Return the dead child's PID
+                }
+                release(&np->lock);
+            }
+        }
+
+        // If the parent has no children that match the target_pid, return -1 immediately
+        if(!havekids || killed(p)) {
+            release(&wait_lock);
+            return -1;
+        }
+        //Use case of options parameter
+        // If the options parameter is set to 1 (WNOHANG), do not go to sleep! 
+        if (options == 1) {
+            release(&wait_lock);
+            return 0; 
+        }
+        // ----------------------------------
+
+        // If we found the child, but it is STILL RUNNING, we must go to sleep
+        // The child will call wakeup(p) when it eventually calls exit()
+        sleep(p, &wait_lock);
+    }
+}
 
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -759,3 +844,88 @@ procdump(void)
     printf("\n");
   }
 }
+
+// ============================================================
+// SYSTEM CALL: psinfo
+// AUTHOR: Dhanya Gautam   ADM NO: 24je0613
+// PURPOSE: Reads the kernel process table and safely transfers
+//          the status of all active processes to user space.
+// ============================================================
+int
+psinfo(struct procinfo *pinfo, int max)
+{
+  struct proc *p;
+  int count = 0;
+  struct procinfo info;
+
+  static char *states[] = {
+    [UNUSED]    "UNUSED",
+    [USED]      "USED",
+    [SLEEPING]  "SLEEPING",
+    [RUNNABLE]  "RUNNABLE",
+    [RUNNING]   "RUNNING",
+    [ZOMBIE]    "ZOMBIE"
+  };
+
+  struct proc *caller = myproc();
+
+  acquire(&wait_lock);
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state == UNUSED){
+      release(&p->lock);
+      continue;
+    }
+    if(count >= max){
+      release(&p->lock);
+      break;
+    }
+
+    info.pid = p->pid;
+    safestrcpy(info.name, p->name, sizeof(info.name));
+
+    if(p->state >= 0 && p->state < NELEM(states) && states[p->state])
+      safestrcpy(info.state, states[p->state], sizeof(info.state));
+    else
+      safestrcpy(info.state, "???", sizeof(info.state));
+
+    release(&p->lock);
+
+    // copyout se user space mein safely likhte hain
+    if(copyout(caller->pagetable, (uint64)(pinfo + count),
+               (char*)&info, sizeof(info)) < 0){
+      release(&wait_lock);
+      return -1;
+    }
+
+    count++;
+  }
+  release(&wait_lock);
+  return count;
+}
+
+
+// alarm_return: restore the saved trapframe after the alarm handler finishes
+// Called via the alarm_return system call from user space.
+// Author: Sriharsha
+int
+alarm_return(void)
+{
+  struct proc *p = myproc();
+
+  // Restore the trapframe that was saved before the handler was invoked
+  memmove(p->trapframe, p->alarm_trapframe, sizeof(struct trapframe));
+
+  // Free the backup trapframe
+  kfree((void *)p->alarm_trapframe);
+  p->alarm_trapframe = 0;
+
+  // Mark alarm as no longer active so future alarms can fire
+  p->alarm_active = 0;
+
+  // Reset the tick counter for the next alarm cycle
+  p->alarm_ticks = 0;
+
+  return 0;
+}
+
