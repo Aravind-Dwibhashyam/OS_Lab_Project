@@ -46,6 +46,7 @@ entry("uptime");
 entry("waitpid");
 entry("clone");
 entry("sem_wait");
+entry("sem_post");
 entry("alarm");
 entry("alarm_return");
 entry("psinfo");
