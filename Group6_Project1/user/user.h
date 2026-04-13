@@ -30,16 +30,9 @@ int waitpid(int, int* ,int);
 int clone(void(*fcn), void *arg, void *stack);
 int sem_wait(int *);
 int sem_post(int *);
-int alarm(void);
-int psinfo(void);
-int sem_wait(void);
-
-
 int psinfo(struct procinfo*, int);
-
 int alarm(int ticks, void (*handler)());
 int alarm_return(void);
-
 int sendmsg(char*);
 int recvmsg(char*);
 
